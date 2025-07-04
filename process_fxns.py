@@ -75,8 +75,6 @@ def compute_window_metrics(df_cgm, start, end, baseline):
     Assumes df_cgm['timestamp'] and df_cgm['glucose'] exist.
     """
     # Filter CGM data in the window
-
-    print(type(df_cgm))
     mask = (df_cgm['timestamp'] >= start) & (df_cgm['timestamp'] <= end)
     window_data = df_cgm.loc[mask].copy()
 
@@ -134,7 +132,6 @@ def get_time_category(dt):
 def compute_metrics_for_all_windows(df_event_windows, df_cgm_data, df_events,baseline):
     metrics = []
     df_exercise = df_events[df_events['event_type']=='exercise'].sort_values('timestamp')
-    print(type(df_cgm_data))
     for _, row in df_event_windows.iterrows():
         start = row['window_start']
         end = row['window_end']
@@ -235,40 +232,3 @@ def compute_LBGI_HBGI(glucose_values):
     HBGI = round(np.mean(rh_list), 2)
     BGRI = round(LBGI + HBGI, 2)
     return LBGI, HBGI, BGRI
-
-# --- Risk Zoning for LBGI/HBGI/BGRI ---
-def zone_bg_risk(lbgi, hbgi):
-    zones = {}
-    if lbgi <= 1.1:
-        zones['LBGI'] = 'green'
-    elif lbgi <= 2.5:
-        zones['LBGI'] = 'yellow'
-    else:
-        zones['LBGI'] = 'red'
-
-    if hbgi <= 4.5:
-        zones['HBGI'] = 'green'
-    elif hbgi <= 9:
-        zones['HBGI'] = 'yellow'
-    else:
-        zones['HBGI'] = 'red'
-
-    bgri = lbgi + hbgi
-    if bgri <= 6:
-        zones['BGRI'] = 'green'
-    elif bgri <= 10:
-        zones['BGRI'] = 'yellow'
-    else:
-        zones['BGRI'] = 'red'
-
-    return zones
-
-# --- Event Count Zoning ---
-def zone_event_counts(low_events, high_events):
-    total_events = low_events + high_events
-    if total_events <= 1:
-        return 'green'
-    elif total_events <= 3:
-        return 'yellow'
-    else:
-        return 'red'

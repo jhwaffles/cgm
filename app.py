@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime, time
 from shiny import App, render, ui, reactive
 from shinywidgets import render_widget, output_widget
-from process_fxns import create_event_windows, compute_metrics_for_all_windows,estimate_baseline_glucose,calculate_gmi,compute_iqr,compute_sd_of_rate,compute_LBGI_HBGI,time_in_zone,zone_bg_risk
+from process_fxns import create_event_windows, compute_metrics_for_all_windows,estimate_baseline_glucose,calculate_gmi,compute_iqr,compute_sd_of_rate,compute_LBGI_HBGI,time_in_zone
 from sklearn.linear_model import LinearRegression
 
 import plotly.express as px
@@ -45,12 +45,19 @@ app_ui = ui.page_fluid(
 # Server logic
 def server(input, output, session):
     @reactive.Calc
-    def df_clean():
+    def df_raw():
         file = input.file()
         if not file:
             return pd.DataFrame()
+        df = pd.read_csv(file[0]["datapath"], skiprows=1)
+        return df
+
+    @reactive.Calc
+    def df_clean():
+        df=df_raw()
+        if df.empty:
+            return pd.DataFrame()
         try:
-            df = pd.read_csv(file[0]["datapath"], skiprows=1)
             df['timestamp'] = pd.to_datetime(df['Device Timestamp'], format="%m/%d/%Y %H:%M", errors='coerce')
             df['glucose'] = pd.to_numeric(df['Historic Glucose mg/dL'], errors='coerce')
             df['time_since_midnight'] = df['timestamp'] - df['timestamp'].dt.normalize()
@@ -58,6 +65,7 @@ def server(input, output, session):
             df['date'] = df['timestamp'].dt.date
             df = df.dropna(subset=['timestamp', 'glucose']).sort_values('timestamp').reset_index(drop=True)
             return df
+        
         except Exception as e:
             print("Error in df_clean:", e)
             return pd.DataFrame()
@@ -66,7 +74,7 @@ def server(input, output, session):
     def update_date_range():
         df = df_clean()
         if df.empty:
-            return
+            return pd.DataFrame()
 
         # Determine min and max dates from timestamp
         min_date = df['timestamp'].min().date()
@@ -320,17 +328,71 @@ def server(input, output, session):
     @output
     @render_widget
     def event_plot():
-        file=input.file()
-        df = pd.read_csv(file[0]["datapath"], skiprows=1)
+        df = df_raw()
+        df_filtered_data=df_filtered()
         if df.empty:
             return go.Figure()
-
-        
-        #Grabbing rows that have to with logs.
+# Identify and clean event rows
         df_events = df[df['Record Type'].isin([6, 7])].copy()
         df_events = df_events.drop(df_events[df_events['Notes'] == 'Exercise'].index)
         df_events['event_type'] = df_events['Record Type'].map({6: 'food', 7: 'exercise'})
         df_events = df_events.dropna(subset=['timestamp', 'Notes']).sort_values('timestamp').reset_index(drop=True)
+
+        # Compute baseline and event windows
+        baseline = estimate_baseline_glucose(df)
+        df_food_event_windows = create_event_windows(df_events[df_events['event_type'] == 'food'].copy())
+        # df_event_metrics = compute_metrics_for_all_windows(df_food_event_windows, df_filtered_data, df_events, baseline)
+
+        # # Create plot
+        # fig = go.Figure()
+        # fig.add_trace(go.Scatter(
+        #     x=df['timestamp'],
+        #     y=df['glucose'],
+        #     mode='lines+markers',
+        #     name='Glucose',
+        #     hovertemplate='Time: %{x}<br>Glucose: %{y} mg/dL'
+        # ))
+
+        # for _, row in df_event_metrics.iterrows():
+        #     mask = (df['timestamp'] >= row['window_start']) & (df['timestamp'] <= row['window_end'])
+        #     segment = df.loc[mask]
+        #     above = segment[segment['glucose'] > baseline]
+        #     if above.empty:
+        #         continue
+
+        #     fill_x = list(above['timestamp']) + list(above['timestamp'][::-1])
+        #     fill_y = list(above['glucose']) + [baseline] * len(above)
+        #     n_points = len(fill_x)
+        #     customdata = np.array([[row['event_note'], row['window_start'], row['window_end'],
+        #                             row['glucose_max'], row['glucose_auc']]] * n_points)
+
+        #     fig.add_trace(go.Scatter(
+        #         x=fill_x,
+        #         y=fill_y,
+        #         fill='toself',
+        #         mode='lines+markers',
+        #         marker=dict(size=1, color='rgba(0,0,0,0)'),
+        #         line=dict(color='rgba(255, 165, 0, 0.2)'),
+        #         fillcolor='rgba(255, 165, 0, 0.3)',
+        #         customdata=customdata,
+        #         hovertemplate=(
+        #             "<b>%{customdata[0]}</b><br>" +
+        #             "Start: %{customdata[1]}<br>" +
+        #             "End: %{customdata[2]}<br>" +
+        #             "Max Glucose: %{customdata[3]} mg/dL<br>" +
+        #             "AUC above baseline: %{customdata[4]:.1f}<extra></extra>"
+        #         ),
+        #         showlegend=False
+        #     ))
+
+        # fig.update_layout(
+        #     title='Glucose Readings with Highlighted Event Windows',
+        #     xaxis_title='Timestamp',
+        #     yaxis_title='Glucose (mg/dL)',
+        #     hovermode='closest'
+        # )
+
+        # return fig
 
 
     @output
