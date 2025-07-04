@@ -1,0 +1,262 @@
+﻿Item,Weight,Protein,Carbs,Fat,Calories,Source
+fish cake,250g,40g,10g,15g,350,LLM estimate
+quinoa,200g,8g,40g,6g,260,USDA
+chocolate,135g,3g,60g,30g,600,USDA
+coconut water,325g,0g,15g,0g,60,USDA
+ceviche,250g,38g,10g,10g,340,LLM estimate
+salad,200g,4g,10g,5g,120,LLM estimate
+nut crackers,135g,8g,25g,18g,350,USDA/LLM combo
+pork bone soup,200,36g,8g,24g,380,USDA
+lettuce,85,0.9g,1.7g,0g,13,USDA
+gnocci,200,10g,60g,6g,400,USDA
+sauce,100,5g,6g,6g,90,LLM
+pastry,195,7.8g,49g,29g,546,USDA
+maitake,85,1.7g,2.6g,0g,17,USDA
+dimpling,85,4.2g,21g,5.1g,180,LLM
+eggplant,85,0.9g,3.4g,0g,17,USDA
+spinach,85,1.7g,1.7g,0g,17,USDA
+masala,85,0.9g,2.6g,2.6g,43,LLM
+cracker,85,1.7g,10.2g,4.3g,102,USDA
+ice cream,75,6g,27g,12g,300,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+Aman cafe roti,195,11.7,54.6,13.7,468,LLM estimate
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+pizza,250,30,80,20,650,USDA
+ceviche,200,30,8,8,260,LLM
+maitakr,135,3,4,2,60,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+ceviche,300,45,10,10,300,LLM
+cheese,285,32,1,25,410,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+ceviche,250,37.5,8,8,290,LLM
+salad,200,4,10,5,120,LLM
+nut crackers,135,6,22,9,280,USDA/LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chocolate krackel,195,3,50,30,590,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chipotle chicken,585,55,45,18,680,LLM estimate
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+energy bar,195,20,28,12,370,USDA/LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+fruit snacks,195,1,45,0.5,220,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chicken,200,40,0,8,240,USDA
+apple,100,0.5,14,0,60,USDA
+whole wheat bread,285,15,50,4,300,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+potato chips,195,4,45,30,500,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+salmon,117,25,0,13,220,USDA
+broccoli,117,3.5,6,0,40,USDA
+cauliflower,117,3,6,0,35,USDA
+carrot,117,1,10,0,45,USDA
+asparagus,117,3,2.5,0,30,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+kuih,195,3,50,10,400,LLM (as cake)
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+caprese sandwich,195,14,35,15,380,LLM
+pasta,195,7,42,4,260,USDA
+chicken sandwich,195,25,30,10,360,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+cookie,195,4,50,22,480,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+fried chicken,300,45,8,20,400,LLM
+veggies,285,4,12,2,120,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+broccoli,97.5,2.9,5,0,30,USDA
+cauliflower,97.5,2.5,5,0,30,USDA
+fried chicken,97.5,15,3,7,160,LLM
+quinoa,97.5,4,20,2,130,USDA
+salad,97.5,2,5,2,60,LLM
+avocado,97.5,2,3,14,160,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+soto betawi,150,6,8,10,160,LLM (soup)
+tofu,120,12,2,6,120,USDA
+tempeh,135,18,9,9,210,USDA
+rice,180,3,45,1,220,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+kombucha,325,0,15,0,60,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+soto betawi,150,6,8,10,160,LLM
+tofu,120,12,2,6,120,USDA
+tempeh,135,18,9,9,210,USDA
+cucumber,180,1,4,0,15,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chocolate cookie,195,4,48,20,460,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+soto betawi,120,5,6,8,130,LLM
+tofu,100,10,2,5,100,USDA
+tempeh,110,15,7,7,170,USDA
+cucumber,80,0.5,2,0,8,USDA
+rice,175,3,43,1,215,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+soto betawi,150,6,8,10,160,LLM
+rice,150,2.5,37,1,185,USDA
+tofu,140,14,3,7,140,USDA
+tempeh,145,20,9,10,220,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+nectarine,195,2,22,0,90,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+pesto chicken,250,35,2,18,320,LLM
+salad,120,2,5,4,70,LLM
+pasta,215,8,45,3,280,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+twix bar,195,3,49,21,510,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+BJ's pizza,585,40,75,30,850,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+pasta,220,8,46,2,280,USDA
+pesto chicken,220,30,2,15,280,LLM
+salad,145,2,5,4,70,LLM
+chocolate krackel,40,0.6,10,6,130,LLM
+energy bar,195,20,28,12,370,USDA
+fruit snacks,195,1,45,0.5,220,USDA
+nectarine,140,1.2,18,0,60,USDA
+twix bar,195,3,49,21,510,USDA
+kitkat,90,1.5,23,10,240,USDA
+dark chocolate,50,1.5,11,7,145,USDA
+white chocolate,195,3,59,32,600,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chips,195,3,35,30,500,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+chicken soup,300,30,6,8,280,LLM
+salty Chinese greens,285,6,6,4,80,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+juice base,150,1,25,0,100,LLM
+berries,100,1,15,0,60,USDA
+protein powder,150,30,2,2,140,LLM
+chia seeds,75,5,3,7,120,LLM
+oat milk,110,1,10,3,80,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+eggs,150,18,1,12,200,USDA
+raw tomato,100,1,4,0,20,USDA
+cucumber,80,0.5,2,0,10,USDA
+salad greens,75,1,2,0,10,USDA
+avocado,90,2,3,14,160,USDA
+crackers,90,3,18,6,140,LLM
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+Popeye 3 piece,300,45,6,20,400,LLM
+biscuit,100,4,28,12,220,USDA
+salad greens,100,1,3,0,15,USDA
+Cajun fries,150,4,30,10,300,USDA
+cucumber,50,0.5,1,0,5,USDA
+Item,Weight (g),Protein (g),Carbs (g),Fat (g),Calories,Source
+eggs,150,18,1,12,200,USDA
+salad greens,100,1,2,0,10,USDA
+tomato,100,1,4,0,20,USDA
+rice,150,3,36,1,180,USDA
+chocolate peanut butter cup,85,4,10,12,200,LLM
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+eggs,150g,18g,1g,12g,200,USDA
+salad greens,100g,1g,2g,0g,10,USDA
+tomato,100g,1g,4g,0g,20,USDA
+rice,150g,3g,36g,1g,180,USDA
+chocolate pb cup,85g,4g,10g,12g,200,LLM
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+chocolate almonds,60g,4g,12g,10g,180,LLM
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+tomato pasta,200g,7g,45g,4g,280,USDA
+shrimp,120g,24g,0g,2g,100,USDA
+veggies,130g,2g,6g,0g,40,USDA
+meatballs,135g,18g,3g,12g,280,LLM
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+tofu,200g,20g,4g,8g,200,USDA
+electrolytes,100g,0g,5g,0g,20,LLM
+juice,100g,0g,20g,0g,80,USDA
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+chips,195g,3g,35g,30g,500,USDA
+| pasta | 400g | 14g | 80g | 4g | 500 | USDA |,,,,,,
+| peanut butter cup | 185g | 5g | 15g | 15g| 280 | LLM |,,,,,,
+| pasta | 250g | 10g | 55g | 2g | 320 | USDA |,,,,,,
+| sardine | 150g | 25g | 0g | 10g | 220 | USDA |,,,,,,
+| cucumber | 100g | 0g | 2g | 0g | 10 | USDA |,,,,,,
+| dragon fruit | 85g | 1g | 12g | 0g | 50 | USDA |,,,,,,
+Item,Weight,Protein,Carbs,Fat,Cal,Source
+juice base,150g,1g,25g,0g,100,LLM
+berries,100g,1g,15g,0g,60,USDA
+protein powder,150g,30g,2g,2g,140,LLM
+chia seeds,75g,5g,3g,7g,120,LLM
+oat milk,110g,1g,10g,3g,80,USDA
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+pasta,400,14,80,4,500,USDA
+oreos,185,2,30,12,280,LLM
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+string cheese,60,6,1,4,80,USDA
+Tillamook cheese,60,6,0,6,90,USDA
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+tofu soup,250,10,5,8,160,LLM
+pork,150,20,0,12,240,USDA
+banchan,150,2,10,2,80,LLM
+egg,100,12,1,10,150,USDA
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+brownie,200,4,40,16,350,LLM
+fruit,200,1,30,0,120,USDA
+cheesecake,250,6,30,20,400,LLM
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+fried rice,300,10,60,10,500,LLM
+pastries,150,3,30,12,300,LLM
+coffee (sweetened),150,1,15,0,90,LLM
+vegetables,100,2,5,0,40,USDA
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+wedding banquet,800,40,90,40,1000,LLM
+Item,Weight (g),Protein,Carbs,Fat,Calories,Source
+pizza,585,35,75,25,800,USDA
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+dim sum,585,25,65,25,750,LLM
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+duck buns,300,20,35,12,400,LLM
+sen jian bao,285,15,30,10,350,LLM
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+Burmese noodles,200,6,40,4,300,LLM
+tea leaf salad,150,2,6,8,120,LLM
+curry,150,6,5,10,180,LLM
+rice,150,3,36,1,180,USDA
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+juice base,150,1,25,0,100,LLM
+berries,100,1,15,0,60,USDA
+protein powder,150,30,2,2,140,LLM
+chia seeds,75,5,3,7,120,LLM
+oat milk,110,1,10,3,80,USDA
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+tuna,150,30,0,3,140,USDA
+tomato,100,1,4,0,20,USDA
+greens,100,1,2,0,10,USDA
+cracker,100,3,20,6,140,USDA
+ice cream,135,4,20,10,240,LLM
+,,,,,,
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+fish,200,35,0,10,240,USDA
+quinoa,150,6,30,2,180,USDA
+roasted veg,135,2,10,3,90,LLM
+pineapple,100,0,12,0,50,USDA
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+chicken,200,35,0,8,240,USDA
+rice,200,4,48,1,200,USDA
+salad,100,1,3,0,10,USDA
+tomatoes,85,1,3,0,15,USDA
+,,,,,,
+,,,,,,
+,,,,,,
+cynthia,,,,,,
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+kimchi dumpling,120,5,25,5,210,LLM
+maitake mushroom,80,1,3,0,15,USDA
+spinach,70,2,2,0,10,USDA
+eggplant masala,100,2,6,5,90,LLM
+ice cream,150,4,22,10,240,USDA
+,,,,,,
+kuih,200,5,50,6,350,LLM
+fish ball,160,18,4,3,160,USDA
+fried tofu,160,14,3,10,210,USDA
+,,,,,,
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+soto betawi,200,6,6,8,150,LLM
+tofu,160,14,3,6,140,USDA
+tempeh,160,18,8,9,180,USDA
+,,,,,,
+Item,Weight,Protein,Carbs,Fat,Calories,Source
+pesto pasta,200,7,45,5,300,USDA
+chicken,150,30,0,5,240,USDA
+salad,70,1,2,0,10,USDA
+tomato,50,0.5,2,0,10,USDA
+cucumber,50,0.5,2,0,10,USDA

@@ -1,0 +1,587 @@
+﻿Local Here(
+	(table1 = New Table( "tRNA PC DOE JMP with normalized feed rate",
+		Add Rows( 26 ),
+		Set Header Height( 46 ),
+		New Script(
+			"Source",
+			Data Table( "tRNA PC DOE JMP" ) << Update(
+				With( Data Table( "trna_pc_doe_summary" ) ),
+				Match Columns( :run_name = :run_name )
+			)
+		),
+		New Script(
+			"Fit Least Squares-coded-main and 2 way interactions",
+			Fit Model(
+				Y( :"Activity (STRGU/mL)"n ),
+				Effects(
+					:pH_coded, :DO%_coded, :Temp Set Point_coded, :Feed Rate %_coded,
+					:pH_coded * :DO%_coded, :pH_coded * :Temp Set Point_coded,
+					:pH_coded * :Feed Rate %_coded,
+					:DO%_coded * :Temp Set Point_coded,
+					:DO%_coded * :Feed Rate %_coded,
+					:Temp Set Point_coded * :Feed Rate %_coded
+				),
+				Personality( "Standard Least Squares" ),
+				Emphasis( "Effect Screening" ),
+				Run(
+					:"Activity (STRGU/mL)"n << {Summary of Fit( 0 ),
+					Analysis of Variance( 0 ), Parameter Estimates( 1 ),
+					Effect Details( 0 ), Sorted Estimates( 0 ),
+					Plot Actual by Predicted( 1 ), Plot Regression( 0 ),
+					Plot Residual by Predicted( 1 ), Plot Studentized Residuals( 1 ),
+					Plot Effect Leverage( 0 ),
+					Plot Residual by Normal Quantiles( 0 ),
+					Box Cox Y Transformation( 0 ),
+					Profiler(
+						1,
+						Confidence Intervals( 1 ),
+						Term Value(
+							:pH_coded( 0, Lock( 0 ), Show( 1 ) ),
+							:DO%_coded( -1, Lock( 0 ), Show( 1 ) ),
+							:Temp Set Point_coded( 0, Lock( 0 ), Show( 1 ) ),
+							:Feed Rate %_coded( 0, Lock( 0 ), Show( 1 ) )
+						)
+					)}
+				)
+			)
+		),
+		New Script(
+			"Fit Least Squares-coded-main and 2 way interactions table",
+			Fit Model(
+				Y( :"Activity (STRGU/mL)"n ),
+				Effects(
+					:pH_coded, :DO%_coded, :Temp Set Point_coded, :Feed Rate %_coded,
+					:pH_coded * :DO%_coded, :pH_coded * :Temp Set Point_coded,
+					:pH_coded * :Feed Rate %_coded,
+					:DO%_coded * :Temp Set Point_coded,
+					:DO%_coded * :Feed Rate %_coded,
+					:Temp Set Point_coded * :Feed Rate %_coded
+				),
+				Keep dialog open( 1 ),
+				Personality( "Standard Least Squares" )
+			)
+		),
+		New Script(
+			"Fit Least Squares-main and 2 way interactions",
+			Fit Model(
+				Y( :"Activity (STRGU/mL)"n ),
+				Effects(
+					:pH, :DO%, :Temp Set Point, :Feed Rate %, :pH * :DO%,
+					:pH * :Temp Set Point, :DO% * :Temp Set Point,
+					:pH * :Feed Rate %, :DO% * :Feed Rate %,
+					:Temp Set Point * :Feed Rate %
+				),
+				Personality( "Standard Least Squares" ),
+				Emphasis( "Effect Screening" ),
+				Run(
+					:"Activity (STRGU/mL)"n << {Summary of Fit( 0 ),
+					Analysis of Variance( 0 ), Parameter Estimates( 1 ),
+					Effect Details( 0 ), Sorted Estimates( 0 ),
+					Plot Actual by Predicted( 1 ), Plot Regression( 0 ),
+					Plot Residual by Predicted( 1 ), Plot Studentized Residuals( 1 ),
+					Plot Effect Leverage( 0 ),
+					Plot Residual by Normal Quantiles( 0 ),
+					Box Cox Y Transformation( 0 ),
+					Profiler(
+						1,
+						Confidence Intervals( 1 ),
+						Term Value(
+							:pH( 7, Lock( 0 ), Show( 1 ) ),
+							:DO%( 30, Lock( 0 ), Show( 1 ) ),
+							:Temp Set Point( 0, Lock( 0 ), Show( 1 ) ),
+							:Feed Rate %( 0, Lock( 0 ), Show( 1 ) )
+						)
+					)}
+				)
+			)
+		),
+		New Script(
+			"Fit Least Squares-include quadratic terms",
+			Fit Model(
+				Y( :"Activity (STRGU/mL)"n ),
+				Effects(
+					:pH & RS, :DO% & RS, :Temp Set Point & RS, :Feed Rate % & RS,
+					:pH * :pH, :pH * :DO%, :DO% * :DO%, :pH * :Temp Set Point,
+					:DO% * :Temp Set Point, :Temp Set Point * :Temp Set Point,
+					:pH * :Feed Rate %, :DO% * :Feed Rate %,
+					:Temp Set Point * :Feed Rate %, :Feed Rate % * :Feed Rate %
+				),
+				No Intercept( 1 ),
+				Center Polynomials( 0 ),
+				Personality( "Standard Least Squares" ),
+				Emphasis( "Effect Screening" ),
+				Run(
+					:"Activity (STRGU/mL)"n << {Summary of Fit( 0 ),
+					Analysis of Variance( 0 ), Parameter Estimates( 1 ),
+					Effect Details( 0 ), Sorted Estimates( 0 ),
+					Plot Actual by Predicted( 1 ), Plot Regression( 0 ),
+					Plot Residual by Predicted( 1 ), Plot Studentized Residuals( 1 ),
+					Plot Effect Leverage( 0 ),
+					Plot Residual by Normal Quantiles( 0 ),
+					Box Cox Y Transformation( 0 ),
+					Profiler(
+						1,
+						Confidence Intervals( 1 ),
+						Term Value(
+							:pH( 7, Lock( 0 ), Show( 1 ) ),
+							:DO%( 30, Lock( 0 ), Show( 1 ) ),
+							:Temp Set Point( 0, Lock( 0 ), Show( 1 ) ),
+							:Feed Rate %( 0, Lock( 0 ), Show( 1 ) )
+						)
+					)}
+				)
+			)
+		),
+		New Column( "run_name",
+			Character,
+			"Nominal",
+			Set Values(
+				{"250424-A01", "250424-A02", "250424-A03", "250424-A04",
+				"250424-A05", "250424-A06", "250424-A07", "250424-A08", "250424-A09",
+				"250424-A10", "250424-A11", "250424-A12", "250430-A01", "250430-A02",
+				"250430-A03", "250430-A04", "250430-A05", "250430-A06", "250430-A07",
+				"250430-A08", "250430-A09", "250430-A10", "250430-A11", "250430-A12",
+				"TRNA GMP9 control-1", "TRNA GMP9 control-2"}
+			),
+			Set Display Width( 117 )
+		),
+		New Column( "Experiment",
+			Character( 19 ),
+			"Nominal",
+			Set Values(
+				{"DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE",
+				"DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE", "DOE",
+				"DOE", "OFAT", "OFAT", "OFAT", "OFAT", "", ""}
+			),
+			Set Display Width( 64 )
+		),
+		New Column( "Group",
+			Character,
+			"Nominal",
+			Set Values(
+				{"", "CP", "", "", "", "", "", "CP", "", "", "", "", "CP", "", "",
+				"", "", "", "CP", "", "OFAT1", "OFAT2", "OFAT3", "OFAT4", "", ""}
+			),
+			Set Display Width( 38 )
+		),
+		New Column( "Block",
+			Numeric,
+			"Nominal",
+			Format( "Best", 12 ),
+			Set Values(
+				[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+				2, ., .]
+			),
+			Set Display Width( 38 )
+		),
+		New Column( "Plate",
+			Character( 1 ),
+			"Nominal",
+			Set Values(
+				{"6", "7", "7", "1", "1", "1", "1", "2", "5", "2", "2", "3", "3",
+				"3", "4", "4", "4", "4", "5", "5", "5", "", "6", "6", "3", "6"}
+			),
+			Set Display Width( 44 )
+		),
+		New Column( "Sample Code",
+			Character( 6 ),
+			"Nominal",
+			Set Values(
+				{"S-0NEL", "S-0NEM", "S-0NEN", "S-0NDY", "S-0NDZ", "S-0NE0",
+				"S-0NE1", "S-0NE2", "S-0NE3", "S-0NE4", "S-0NE5", "S-0NE6", "S-0NE8",
+				"S-0NE9", "S-0NEA", "S-0NEB", "S-0NEC", "S-0NED", "S-0NEE", "S-0NEF",
+				"S-0NEG", "", "S-0NEI", "S-0NEJ", "S-0NE7", "S-0NEK"}
+			),
+			Set Display Width( 85 )
+		),
+		New Column( "Assay Control",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Selected,
+			Set Values(
+				[0.78, 0.8, 0.8, 0.78, 0.78, 0.78, 0.78, 0.79, 0.79, 0.79, 0.79,
+				0.83, 0.83, 0.83, 0.77, 0.77, 0.77, 0.77, 0.74, 0.74, 0.74, ., 0.78,
+				0.78, 0.83, 0.78]
+			),
+			Set Display Width( 77 )
+		),
+		New Column( "pH",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[6.75, 7, 6.75, 7.25, 7.25, 7.25, 6.75, 7, 6.75, 7.25, 6.75, 7.25, 7,
+				7.25, 6.75, 6.75, 7.25, 6.75, 7, 7.25, ., ., ., ., ., .]
+			),
+			Set Display Width( 38 )
+		),
+		New Column( "DO%",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[50, 30, 10, 50, 10, 50, 50, 30, 10, 10, 10, 50, 30, 10, 50, 10, 10,
+				50, 30, 50, ., ., ., ., ., .]
+			),
+			Set Display Width( 48 )
+		),
+		New Column( "Temp Set Point",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[1, 0, 1, -1, 1, 1, -1, 0, -1, -1, 1, -1, 0, -1, 1, -1, 1, -1, 0, 1,
+				., ., ., ., ., .]
+			),
+			Set Display Width( 86 )
+		),
+		New Column( "Feed Rate %",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[15, 0, 15, 15, -15, -15, -15, 0, -15, 15, -15, -15, 0, -15, -15, 15,
+				15, 15, 0, 15, ., ., ., ., ., .]
+			),
+			Set Display Width( 69 )
+		),
+		New Column( "Activity (STRGU/mL)",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[0.91, 0.82, 0.86, 0.8, 0.57, 0.59, 0.2, 0.92, 0.95, 0.59, 1, 0.5,
+				0.69, 0.92, 1.01, 0.2, 0.64, 0.2, 0.74, 0.58, 0.79, ., 0.49, 0.83,
+				0.59, 0.59]
+			),
+			Set Display Width( 108 )
+		),
+		New Column( "pH_coded",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Formula( (:pH - 7) / 0.25 ),
+			Set Display Width( 56 )
+		),
+		New Column( "DO%_coded",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Formula( (:DO% - 30) / 20 ),
+			Set Display Width( 67 )
+		),
+		New Column( "Temp Set Point_coded",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[1, 0, 1, -1, 1, 1, -1, 0, -1, -1, 1, -1, 0, -1, 1, -1, 1, -1, 0, 1,
+				., ., ., ., ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "Feed Rate %_coded",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Formula( (:Feed Rate % - 0) / 15 ),
+			Set Display Width( 95 )
+		),
+		New Column( "max_od",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[101.665, 90.69, 100.188, 98.766, 77.963, 75.249, 63.101, 93.704,
+				85.867, 95.797, 84.674, 82.248, 86.568, 78.953, 84.657, 93.202,
+				85.265, 85.96, 87.837, 87.963, 92.085, 9.675, 89.667, 90.944, ., .]
+			),
+			Set Display Width( 53 )
+		),
+		New Column( "induction_od",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[97.933, 89.395, 100.188, 97.622, 67.03, 68.83, 63.101, 92.056,
+				85.867, 94.35, 83.446, 75.707, 85.581, 78.953, 77.006, 86.089, 85.23,
+				85.96, 87.808, 82.754, 83.855, ., 85.449, 88.13, ., .]
+			),
+			Set Display Width( 112 )
+		),
+		New Column( "Feed_Rate_Induction_Normalized",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Selected,
+			Set Values(
+				[0.123349637, 0.117456234, 0.120573322, 0.123742599, 0.13322393,
+				0.129739939, 0.141519152, 0.114061006, 0.103998043, 0.128033916,
+				0.107015315, 0.117954747, 0.122690784, 0.113105265, 0.11596499,
+				0.140319901, 0.141734131, 0.140530479, 0.119579082, 0.145974817, .,
+				., ., ., ., .]
+			),
+			Set Display Width( 125 )
+		),
+		New Column( "final_od",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[100.659, 90.69, 94.765, 97.207, 77.963, 75.249, 52.642, 87.613,
+				81.373, 95.296, 84.674, 82.248, 86.568, 76.434, 84.657, 93.202,
+				85.264, 70.914, 87.837, 87.963, 92.085, 4.171, 89.667, 90.944, ., .]
+			),
+			Set Display Width( 54 )
+		),
+		New Column( "bioht_od_lysate",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[0.9487, 0.9439, 1.1302, 0.7917, 1.1944, 1.2552, 0.901, 0.9355,
+				0.815, 1.2901, 0.912, 0.9854, 1.1336, 1.7602, 1.508, 0.7516, 1.4374,
+				1.1588, 1.0418, 1.3755, 0.9871, ., 1.171, 1.1594, ., .]
+			),
+			Set Display Width( 87 )
+		),
+		New Column( "bioht_total_protein_lysate_g_l",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[22.994, 22.279, 19.328, 23.827, 24.181, 24.006, 18.07, 21.832,
+				21.674, 24.35, 19.011, 23.708, 21.424, 23.942, 24.148, 22.995,
+				25.874, 23.594, 22.826, 23.727, 22.156, ., 21.681, 20.213, ., .]
+			),
+			Set Display Width( 152 )
+		),
+		New Column( "final_acetate_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[3.56, 4.83, 3.87, 8.23, 1.66, 2, 237.62, 5.44, 18.54, 12.91, 4.55,
+				5.33, 2.13, 13.83, 3.45, 216.05, 1.76, 238.33, 2.42, 1.31, 4.67,
+				6.07, 2.56, 2.98, ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "log (induction acetate)",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Formula( Log( :induction_acetate_mmol ) )
+		),
+		New Column( "max_acetate_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[5.61, 6.06, 3.87, 15.93, 5.31, 3.7, 237.62, 5.49, 18.54, 29.68,
+				4.55, 10.08, 3.89, 21.39, 3.45, 216.05, 5.51, 238.33, 3.74, 4.7,
+				4.67, 9.19, 4.18, 3.29, ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "induction_acetate_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[2, 2.43, 1.57, 9.17, 4.43, 1.9, 116.67, 2.6, 5.48, 15.33, 1.25,
+				7.88, 2.81, 6.92, 1.8, 115.44, 2.14, 120.63, 2.53, 1.7, 2.25, 2.99,
+				1.36, 2.12, ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "final_arabinose_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[874.306, 1153.96, 972.411, 1203.94, 1035.89, 1188.79, 3101.52,
+				1149.24, 2042.22, 744.05, 1340.91, 1112.79, 1058.7, 1765.69, 1339.79,
+				2719.86, 978.698, 2709.79, 1176.66, 910.878, 1807.54, 6060.95,
+				1237.1, 417.121, ., .]
+			),
+			Set Display Width( 102 )
+		),
+		New Column( "max_arabinose_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[1867.04, 2146.12, 3127.43, 3094.34, 3332.81, 3476.32, 3686.09,
+				3269.55, 3427.02, 3084.73, 3473.37, 3400.87, 3147.55, 3360.81,
+				3328.27, 3358.35, 2943.86, 3309.64, 1869.37, 3038.73, 1807.54,
+				6060.95, 2929.71, 1649.58, ., .]
+			),
+			Set Display Width( 102 )
+		),
+		New Column( "induction_arabinose_mmol",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[1094.42, 867.583, 3127.43, 3094.34, 3332.81, 3476.32, 3686.09,
+				3269.55, 3427.02, 3084.73, 3473.37, 3400.87, 3147.55, 3360.81,
+				3328.27, 3358.35, 2943.86, 3309.64, 902.687, 3038.73, 941.883,
+				4639.24, 2929.71, 1649.58, ., .]
+			),
+			Set Display Width( 102 )
+		),
+		New Column( "final_bioht_total_protein_g_l",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[0, 0, 0, 2.427, 2.752, 0, 0, 2.286, 0, 2.109, 0, 2.561, 3.416,
+				2.835, 0, 0, 3.816, 0, 3.101, 3.655, 2.162, 0, 2.835, 0, ., .]
+			),
+			Set Display Width( 161 )
+		),
+		New Column( "max_bioht_total_protein_g_l",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[0, 0, 0, 2.427, 2.76, 2.56, 0, 2.286, 0, 2.109, 0, 2.561, 3.416,
+				2.835, 0, 0, 3.816, 0, 3.101, 3.655, 2.162, 3.179, 2.835, 0, ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "induction_bioht_total_protein_g_l",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[0, 0, 0, 0, 2.228, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.201, 0, 0, 0,
+				0, 0, 0, 0, ., .]
+			),
+			Set Display Width( 95 )
+		),
+		New Column( "trna_concentration_rt_qpcr_mg_ml",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[229.2, 257.4, 1141.6, 218.2, 220.5, 171.3, 3.8, 293.6, 336, 98.3,
+				340.8, 136.7, 161.2, 76.7, 333.1, 32.6, 174.8, 10.5, 218.6, 416,
+				315.6, ., 304.6, 301.7, ., .]
+			),
+			Set Display Width( 168 )
+		),
+		New Column( "stdev_po2_induction_to_harvest",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[21.5402747440242, 13.7394073357237, 4.68378135540989,
+				22.7256114010724, 4.92197437328063, 22.9151389391839,
+				22.7661302845616, 13.7284137975367, 4.73600126768432,
+				4.77005397631274, 4.67913347625269, 22.6587290421662,
+				13.4013758425945, 4.47044090827901, 21.7547383267109,
+				4.50770584266143, 5.38892162141386, 21.9038549354453,
+				13.1764933795294, 22.0755972957804, 9.73351593260402,
+				0.00511753741453732, 13.027206619122, 13.1365923414463, ., .]
+			),
+			Set Display Width( 117 )
+		),
+		New Column( "stdev_po2_fedbatch_to_harvest",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[10.3867929684905, 6.73288201239181, 2.66182188892319,
+				11.2563570012171, 3.1173104646437, 11.2159137144876, 11.383341189421,
+				6.71083222534551, 9.25012064055379, 5.8878388525846,
+				2.84016652470613, 11.1721958323257, 6.59146372161051,
+				8.56689735457912, 10.530665616546, 11.9945501988055,
+				3.19369524205345, 10.7013493570677, 6.4592131369254,
+				10.7574287593113, 4.60935733704707, 10.8527014623614,
+				6.42634384070357, 6.45483184823673, ., .]
+			),
+			Set Display Width( 101 )
+		),
+		New Column( "avg_po2_induction_to_harvest",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[38.7192972972973, 21.6872972972973, 6.94678378378378,
+				36.2379459459459, 6.99713513513514, 36.5548108108108,
+				36.4292432432432, 21.7272162162162, 7.13221621621622,
+				6.9157027027027, 6.99654054054054, 36.2178378378378,
+				22.0004324324324, 7.6395945945946, 37.6919459459459,
+				7.64937837837838, 6.53662162162162, 38.0074594594595,
+				22.7426756756757, 37.1079189189189, 26.5064444444444,
+				-0.0992432432432433, 22.1423783783784, 22.6996486486486, ., .]
+			),
+			Set Display Width( 179 )
+		),
+		New Column( "avg_po2_fedbatch_to_harvest",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[46.6308341968912, 27.4778756476684, 8.50973575129534,
+				46.1198808290155, 8.71464248704663, 46.7152538860104,
+				46.7255440414508, 27.5114715025907, 11.0716476683938,
+				9.54122797927461, 8.59676683937823, 46.1705647668394,
+				27.6231088082901, 10.8222331606218, 46.8286321243523,
+				12.3337461139896, 8.41665803108808, 47.0921917098446,
+				27.8552176165803, 46.6685077720207, 28.6585628415301,
+				4.30101036269431, 27.6411968911917, 27.8367875647668, ., .]
+			),
+			Set Display Width( 175 )
+		),
+		New Column( "bradford_total_protein_lysate_g_l",
+			Numeric,
+			"Continuous",
+			Format( "Best", 12 ),
+			Set Values(
+				[14.4, 16.6, 10.8, 17.2, 19.5, 19.7, 15.4, 18.9, 19.3, 20.8, 17.2,
+				19.9, 18.7, 18, 20.8, 18.3, 21.8, 19.9, 13.6, 11.2, 8.6, ., 12.7, 12,
+				., .]
+			),
+			Set Display Width( 105 )
+		),
+		Set Row States(
+			[0, 8, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 8, 0, 2, 2, 2, 2,
+			2, 2]
+		)
+	)) << Run Formulas;
+	table1 << Fit Model(
+		Y( :"Activity (STRGU/mL)"n ),
+		Effects(
+			:Feed_Rate_Induction_Normalized, :pH, :DO%, :Temp Set Point,
+			:Feed Rate %, :pH * :DO%, :pH * :Temp Set Point, :pH * :Feed Rate %,
+			:DO% * :Temp Set Point, :DO% * :Feed Rate %,
+			:Temp Set Point * :Feed Rate %, :induction_od
+		),
+		Personality( "Standard Least Squares" ),
+		Emphasis( "Effect Screening" ),
+		Run(
+			:"Activity (STRGU/mL)"n << {Summary of Fit( 0 ),
+			Analysis of Variance( 0 ), Parameter Estimates( 1 ), Effect Details( 0 ),
+			Lack of Fit( 0 ), Sorted Estimates( 0 ), Plot Actual by Predicted( 1 ),
+			Plot Regression( 0 ), Plot Residual by Predicted( 1 ),
+			Plot Studentized Residuals( 1 ), Plot Effect Leverage( 0 ),
+			Plot Residual by Normal Quantiles( 0 ), Box Cox Y Transformation( 0 ),
+			Profiler(
+				1,
+				Confidence Intervals( 1 ),
+				Term Value(
+					:Feed_Rate_Induction_Normalized( 0.12416, Lock( 0 ), Show( 1 ) ),
+					:pH( 7.01316, Lock( 0 ), Show( 1 ) ),
+					:DO%( 28.947, Lock( 0 ), Show( 1 ) ),
+					:Temp Set Point( 0.0526, Lock( 0 ), Show( 1 ) ),
+					:Feed Rate %( 0.789, Lock( 0 ), Show( 1 ) ),
+					:induction_od( 85.358, Lock( 0 ), Show( 1 ) )
+				)
+			)}
+		)
+	);
+)
