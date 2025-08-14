@@ -3,6 +3,8 @@ cgm-env/
 data
 storage
 cgm
+generated_data
+notebooks
 
 # Optionally ignore other common files
 __pycache__/
