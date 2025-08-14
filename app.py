@@ -1,213 +1,217 @@
 import pandas as pd
 import numpy as np
+import os
 from datetime import datetime, time
 from shiny import App, render, ui, reactive
 from shinywidgets import render_widget, output_widget
-from process_fxns import create_event_windows, compute_metrics_for_all_windows,estimate_baseline_glucose,calculate_gmi,compute_iqr,compute_sd_of_rate,compute_LBGI_HBGI,time_in_zone
+from glucose_metrics import calculate_gmi,time_in_zone, compute_risk_trace, compute_rate_of_change, compute_poincare_data
+from ui_components import generate_metrics_summary_ui, signature_plot_title, risk_trace_title, roc_histogram_title, poincare_plot_title
+from plots import create_signature_plot,create_event_plot, plot_risk_trace, plot_roc_histogram, plot_poincare
+from processing_pipeline import run_event_metrics_pipeline
+generate_metrics_summary_ui
 from sklearn.linear_model import LinearRegression
 
 import plotly.express as px
 import plotly.graph_objects as go
 
-#input file
-#select time filter
-#output graph with values so user day by day
-#output metrics + comparison with population values
-#can take peak/llm analysis offline
+
+#output metrics + comparison with population values. put some better context on these metrics. 1. what is the Ambuloatory glucose profile? population metrics?
+#output graph with values so user day by day. incorporate better baseline algorithm? Put this on to-do:
+#can take peak/llm analysis offline (download). Add download button.  DONE
+#give 'example' anonymized profiles. DONE
+#put together a readme.
 
 app_ui = ui.page_fluid(
     ui.panel_title("CGM Report"),
-    #Section 1 - Overview
-    ui.layout_columns(
-        #left column, inputs and metrics (25%)
-        ui.card(
-            ui.input_file("file", "Upload CGM CSV"),
-            ui.input_date_range("date_range", "Date Range", start="2022-07-01", end="2022-07-14")
-        ),
-        #right column, Signature Plot (75%)
-        ui.card(
-            output_widget("signature_plot"),
+    ui.page_navbar(
+        ui.nav_panel("Overall Summary",
+            ui.markdown("Upload your CGM CSV file and select a date range. View an aggregate glucose profile (Ambulatory Glucose Profile), baseline glucose, GMI, and time-in-range."),
             ui.layout_columns(
-                ui.div(ui.output_ui("metrics_summary_ui"))
-            ),
-            title="Summary Metrics",
-            full_screen=True
+                # Left column: inputs
+                ui.card(
+                    ui.input_file("file", "Upload CGM CSV"),
+                    ui.input_date_range("date_range", "Date Range", start="2022-07-01", end="2022-07-14")
+                ),
+                # Right column: signature plot + metrics
+                ui.card(
+                    ui.HTML(f"<h5>{signature_plot_title()}</h5>"),  #from ui_components.py
+                    output_widget("signature_plot"),
+                    ui.output_ui("metrics_summary_ui"),
+                    full_screen=True
+                ),
+                col_widths=(3, 9)
+            )
         ),
-        
 
-        col_widths=(3, 9)
-    ),
-    #Section 2 - Day to Day View
-    ui.input_selectize("selected_days","Choose a day",choices=[],multiple=True),
-    output_widget("daily_plot")
+        ui.nav_panel("Day-by-Day View",
+            ui.markdown("Select a specific day to view glucose traces. Optionally overlay logged events to see post-meal glucose responses."),
+            ui.layout_columns(
+                ui.card(
+                    ui.h5("Select a Day"),
+                    ui.output_ui("day_buttons"),
+                    ui.input_checkbox("show_logged_events", "Display Logged Events", value=True),
+                ),
+                ui.card(
+                    output_widget("event_plot"),
+                    title="Glucose Events for Selected Day",
+                    full_screen=True
+                ),
+                col_widths=(3, 9)
+            )
+        ),
+
+        ui.nav_panel("Event Metrics Table",
+            ui.markdown("Browse a table of calculated metrics for each logged food event. Export to CSV for further analysis."),
+            ui.card(
+                ui.h5("Event AUC Metrics"),
+                ui.output_data_frame("event_table"),
+                ui.download_button("download_event_metrics", "Download as CSV", class_="mb-3")
+
+            )
+        ),
+        ui.nav_panel("Advanced Metrics",
+            ui.markdown("Explore risk indices (LBGI/HBGI), rate-of-change histogram, and a Poincaré plot showing glycemic variability."),
+            ui.card(
+                ui.output_ui("risk_trace_title_ui"),
+                output_widget("risk_trace_plot"),
+                ui.hr(),
+                ui.output_ui("roc_histogram_title_ui"),
+                output_widget("roc_histogram"),
+                ui.hr(),
+                ui.output_ui("poincare_plot_title_ui"),
+                output_widget("poincare_plot")
+            )
+        ),
+        ui.nav_panel("About",
+            ui.card(
+                ui.HTML("""
+                    <h3>Overview</h3>
+                    <p>
+                    This app helps clinicians and patients analyze uploaded Continuous Glucose Monitoring (CGM) data. It enables both high-level summary and detailed event-by-event insights into glycemic patterns.
+                    </p>
+
+                    <h3>Summary Metrics (AGP Overview)</h3>
+                    <p>The Ambulatory Glucose Profile (AGP) summarizes glucose trends across the day, typically using 10–14 days of data.</p>
+                    <p><strong>Key metrics include:</strong></p>
+                    <ul>
+                    <li><strong>Baseline Glucose:</strong> Typical pre-meal glucose level</li>
+                    <li><strong>Mean Glucose</strong></li>
+                    <li><strong>GMI (Glucose Management Indicator):</strong> An estimate of A1C</li>
+                    <li><strong>Time in Range:</strong> % time spent in target zones (e.g., 70–180 mg/dL)</li>
+                    </ul>
+                    <p><em>Reference: Clinical Targets for Continuous Glucose Monitoring Data Interpretation: Recommendations From the International Consensus on Time in Range (ADA, 2019).</em></p>
+
+                    <h3>Day-by-Day View</h3>
+                    <ul>
+                    <li>Allows users to explore individual days.</li>
+                    <li>A “Display Logged Events” checkbox overlays 2-hour windows after logged food entries.</li>
+                    <li>Each event is highlighted above a calculated glucose baseline to visualize postprandial excursions.</li>
+                    </ul>
+
+                    <h3>Event Metrics Table</h3>
+                    <p>Summarizes glucose features from each logged food event.</p>
+                    <p><strong>Each 2-hour window includes:</strong></p>
+                    <ul>
+                    <li>Maximum and minimum glucose</li>
+                    <li>Area under the curve (AUC) above baseline</li>
+                    <li>Max rate of rise and fall</li>
+                    <li>Whether exercise occurred within 3 hours</li>
+                    <li>Meal time category (e.g., breakfast, lunch)</li>
+                    </ul>
+                    <p>The table can be downloaded for further analysis.</p>
+                    <p><em>Reference: Zeevi et al., <i>Personalized Nutrition by Prediction of Glycemic Responses</i>, Cell, 2015.</em></p>
+
+                    <h3>Advanced Metrics</h3>
+                    <p>Three research-grade tools to quantify glucose variability:</p>
+                    <ul>
+                    <li><strong>Risk Trace</strong>: Plots LBGI (Low BG Index) and HBGI (High BG Index) over time. These reflect the frequency and severity of hypo- and hyperglycemia risk. Based on log-transformed risk scoring of glucose.</li>
+                    <li><strong>Rate of Change Histogram</strong>: Histogram of glucose slopes (mg/dL/min), downsampled to 15-min intervals to reduce noise.</li>
+                    <li><strong>Poincaré Plot</strong>: Visualizes short- and long-term variability (SD1, SD2). Ellipse shows 95% confidence coverage.</li>
+                    </ul>
+                    <p><em>Reference: Clarke and Kovatchev, <i>Statistical Tools to Analyze Continuous Glucose Monitor Data</i>, Diabetes Technology & Therapeutics, 2008.</em></p>
+                """)
+            )
+        )
+    )
 )
-
 # Server logic
 def server(input, output, session):
+    selected_day_value = reactive.Value(None)
+    previous_file_name = reactive.Value(None)
+
     @reactive.Calc
-    def df_raw():
+    def data_bundle():
         file = input.file()
-        if not file:
-            return pd.DataFrame()
-        df = pd.read_csv(file[0]["datapath"], skiprows=1)
-        return df
 
-    @reactive.Calc
-    def df_clean():
-        df=df_raw()
-        if df.empty:
-            return pd.DataFrame()
-        try:
-            df['timestamp'] = pd.to_datetime(df['Device Timestamp'], format="%m/%d/%Y %H:%M", errors='coerce')
-            df['glucose'] = pd.to_numeric(df['Historic Glucose mg/dL'], errors='coerce')
-            df['time_since_midnight'] = df['timestamp'] - df['timestamp'].dt.normalize()
-            df['hours_since_midnight'] = df['time_since_midnight'].dt.total_seconds() / 3600
-            df['date'] = df['timestamp'].dt.date
-            df = df.dropna(subset=['timestamp', 'glucose']).sort_values('timestamp').reset_index(drop=True)
-            return df
-        
-        except Exception as e:
-            print("Error in df_clean:", e)
-            return pd.DataFrame()
+        # If user uploads a file, use it
+        if file:
+            df_raw = pd.read_csv(file[0]["datapath"], skiprows=1)
+            print("[DEBUG] Using user-uploaded file.")
+        else:
+            return {}
 
-    @reactive.Effect
-    def update_date_range():
-        df = df_clean()
-        if df.empty:
-            return pd.DataFrame()
-
-        # Determine min and max dates from timestamp
-        min_date = df['timestamp'].min().date()
-        max_date = df['timestamp'].max().date()
-
-        # Update the date range input UI
-        ui.update_date_range(
-            "date_range",
-            start=min_date,
-            end=max_date
-        )
-        
-    @reactive.Calc
-    def df_filtered():
-        df = df_clean()
-        if df.empty or 'timestamp' not in df.columns:
-            return pd.DataFrame()
-        
         start_date, end_date = input.date_range()
-    
-        start_dt = datetime.combine(start_date, time.min)
-        end_dt = datetime.combine(end_date, time.max)
-        return df[(df['timestamp'] >= start_dt) & (df['timestamp'] <= end_dt)]
+        return run_event_metrics_pipeline(df_raw, start_date, end_date)
+
+
+    @reactive.Calc
+    def df_glucose_filtered():
+        return data_bundle().get("df_glucose_filtered", pd.DataFrame())
+
+    @reactive.Calc
+    def df_event_metrics():
+        return data_bundle().get("df_event_metrics", pd.DataFrame())
+        
+    @reactive.Calc
+    def baseline():
+        return data_bundle().get("baseline", None)
     
     # Rendered as styled UI, not raw table
     @output
     @render.ui
     def metrics_summary_ui():
-        df = df_filtered()
+        df = df_glucose_filtered()
         if df.empty:
             return ui.div("No data loaded")
 
-        baseline = estimate_baseline_glucose(df)
+        baseline_val = baseline()
         mean_glucose = df['glucose'].mean()
         gmi = calculate_gmi(mean_glucose)
         zones = time_in_zone(df['glucose'])
-        iqr = compute_iqr(df['glucose'])
-        roc_sd = compute_sd_of_rate(df['glucose'])
-        lbgi, hbgi, bgri = compute_LBGI_HBGI(df['glucose'])
+        return generate_metrics_summary_ui(baseline_val, mean_glucose, gmi, zones)
+    
+    @reactive.Effect
+    def update_date_range():
+        file = input.file()
+        if not file:
+            return
 
-        def color_zone(label):
-            if label == "70–180":
-                return "#d4edda"  # green
-            elif label in ["181–250", "54–69"]:
-                return "#fff3cd"  # yellow
-            else:
-                return "#f8d7da"  # red
+        current_file_name = file[0]["name"]
+        if previous_file_name.get() == current_file_name:
+            return  # Same file — do not reset date range
 
-        def color_glucose(val):
-            if 80 <= val <= 100:
-                return "#d4edda"  # green
-            elif 70 <= val < 80 or 100 < val <= 130:
-                return "#fff3cd"  # yellow
-            else:
-                return "#f8d7da"  # red (too low or too high)
+        previous_file_name.set(current_file_name)  # Update to new file
 
-        def color_gmi(val):
-            if val < 6.0:
-                return "#d4edda"  # green-ish
-            elif val < 6.5:
-                return "#fff3cd"  # yellow-ish
-            return "#f8d7da"      # red-ish
-        
-        def color_zone(label):
-            if label == "70–180":
-                return "#d4edda"  # green
-            elif label in ["181–250", "54–69"]:
-                return "#fff3cd"  # yellow
-            else:
-                return "#f8d7da"  # red
+        df = data_bundle().get("df_clean", pd.DataFrame())
+        if df.empty or 'timestamp' not in df.columns:
+            return
 
-        def tooltip(text, explanation):
-            return f"<span title='{explanation}'>{text} ℹ️</span>"
+        min_date = df['timestamp'].min().date()
+        max_date = df['timestamp'].max().date()
 
-        return ui.HTML(f"""
-    <div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;'>
-        <!-- Column 1: Basic -->
-        <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px;'>
-            <h5 style='margin-bottom: 10px;'>Basic Metrics</h5>
-            <div style='background-color: {color_glucose(baseline)}; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('Baseline Glucose', 'Typical pre-meal glucose level. Ideal: 80–100 mg/dL. Source: ADA Standards of Medical Care in Diabetes, 2024')}</b>: {baseline:.1f} mg/dL
-            </div>
-            <div style='background-color: {color_glucose(mean_glucose)}; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('Mean Glucose', 'Average glucose across time range. Target: 70–130 mg/dL. Source: ADA Standards of Medical Care in Diabetes, 2024')}</b>: {mean_glucose:.1f} mg/dL
-            </div>
-            <div style='background-color: {color_gmi(gmi)}; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('GMI', 'Glucose Management Indicator: estimates A1C. GMI < 6.0% is ideal.')}</b>: {gmi:.2f}
-            </div>
-        </div>
+        print(f"[DEBUG] New file uploaded: resetting date range to {min_date} - {max_date}")
 
-        <!-- Column 2: Time in Range -->
-        <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px;'>
-            <h5 style='margin-bottom: 10px;'>Time in Range</h5>
-            {''.join([
-                f"<div style='background-color: {color_zone(label)}; padding: 5px; border-radius: 3px;'>"
-                f"<b>{tooltip(label + ' mg/dL', zone_tooltips.get(label, ''))}</b>: {pct:.1f}%</div>"
-                for label, pct in zones.items()
-            ])}
-        </div>
-
-        <!-- Column 3: Advanced Metrics -->
-        <div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px;'>
-            <h5 style='margin-bottom: 10px;'>Advanced Metrics</h5>
-            <div style='background-color: #e9ecef; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('IQR', 'Interquartile Range of glucose values. Smaller = more stable.')}</b>: {iqr:.1f} mg/dL
-            </div>
-            <div style='background-color: #e9ecef; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('Rate of Change SD', 'Standard deviation of glucose rate-of-change. Higher = more variability.')}</b>: {roc_sd:.2f} mg/dL/min
-            </div>
-            <div style='background-color: #e9ecef; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('LBGI', 'Low Blood Glucose Index: Risk of hypoglycemia. <2.5 is desirable.')}</b>: {lbgi:.2f}
-            </div>
-            <div style='background-color: #e9ecef; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('HBGI', 'High Blood Glucose Index: Risk of hyperglycemia. <2.5 is desirable.')}</b>: {hbgi:.2f}
-            </div>
-            <div style='background-color: #e9ecef; padding: 5px; border-radius: 3px;'>
-                <b>{tooltip('BGRI', 'Blood Glucose Risk Index: Combined LBGI + HBGI.')}</b>: {bgri:.2f}
-            </div>
-        </div>
-    </div>
-    """)
-
-    zone_tooltips = {
-        ">250": "Very high glucose. Increased risk of hyperglycemia complications.",
-        "181–250": "Above target range. Generally too high.",
-        "70–180": "Target range. Goal is >70% of time here.",
-        "54–69": "Below range. Mild hypoglycemia.",
-        "<54": "Severe low glucose. Increased immediate risk."
-    }
+        ui.update_date_range(
+            "date_range",
+            start=min_date,
+            end=max_date,
+            min=min_date,
+            max=max_date
+        )
 
     @reactive.Effect
     def update_day_choices():
-        df=df_filtered()
+        df=df_glucose_filtered()
         if df.empty:
             return
         unique_days=sorted(df['date'].astype(str).unique())
@@ -216,222 +220,120 @@ def server(input, output, session):
     @output
     @render_widget
     def signature_plot():
-        df = df_filtered()
-        if df.empty:
-            return go.Figure()
-
-        if 'hours_rounded' not in df.columns:
-            df['hours_rounded'] = df['hours_since_midnight'].round().astype(int)
-
-        grouped = df.groupby('hours_rounded')['glucose']
-        summary = grouped.quantile([0.05, 0.25, 0.5, 0.75, 0.95]).unstack().reset_index()
-        summary.columns = ['hours_rounded', 'p05', 'p25', 'p50', 'p75', 'p95']
-
-        fig = go.Figure()
-
-        # --- 5th–95th percentile band (light shading) ---
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=summary['p95'],
-            mode='lines',
-            line=dict(width=0),
-            showlegend=False,
-            hoverinfo='skip'
-        ))
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=summary['p05'],
-            mode='lines',
-            fill='tonexty',
-            fillcolor='rgba(0,150,255,0.1)',  # Lighter blue
-            line=dict(width=0),
-            name='5–95% Range',
-            hoverinfo='skip'
-        ))
-
-        # --- 25th–75th percentile band (darker shading) ---
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=summary['p75'],
-            mode='lines',
-            line=dict(width=0),
-            showlegend=False,
-            hoverinfo='skip'
-        ))
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=summary['p25'],
-            mode='lines',
-            fill='tonexty',
-            fillcolor='rgba(0,150,255,0.3)',  # Darker blue
-            line=dict(width=0),
-            name='25–75% Range',
-            hoverinfo='skip'
-        ))
-
-        # --- 50th percentile (median) line ---
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=summary['p50'],
-            mode='lines+markers',
-            name='Median Glucose (50%)',
-            line=dict(color='blue', width=2),
-            marker=dict(size=4)
-        ))
-
-        # --- Target range lines ---
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=[70] * len(summary),
-            mode='lines',
-            name='Lower Target (70)',
-            line=dict(color='green', dash='solid', width=2)
-        ))
-        fig.add_trace(go.Scatter(
-            x=summary['hours_rounded'],
-            y=[180] * len(summary),
-            mode='lines',
-            name='Upper Target (180)',
-            line=dict(color='green', dash='solid', width=2)
-        ))
-
-        # --- Layout styling ---
-        fig.update_layout(
-            title='Ambulatory Glucose Profile (AGP)',
-            xaxis=dict(
-                tickmode='array',
-                tickvals=list(range(0, 25, 2)),
-                ticktext=[f'{h % 12 or 12} {"AM" if h < 12 else "PM"}' for h in range(0, 25, 2)],
-                title='Time of Day',
-                gridcolor='lightblue'
-            ),
-            yaxis=dict(
-                title='Glucose (mg/dL)',
-                gridcolor='lightblue'
-            ),
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            hovermode='x unified'
-        )
-
-        return fig
-
+        df = df_glucose_filtered()
+        return create_signature_plot(df)
 
     @reactive.Calc
-    def df_selected_days():
-        df=df_filtered()
-        selected=input.selected_days()
-        if not selected or df.empty:
-            return pd.DataFrame()
-        return df[df['date'].astype(str).isin(selected)]
+    def available_days():  #only in selected filter
+        df = df_glucose_filtered()
+        if df.empty:
+            return []
+        return sorted(df['date'].astype(str).unique())
+    
+    @output
+    @render.ui
+    def day_buttons():
+        days = available_days()
+        selected_day = selected_day_value.get()
+
+        if not days:
+            return ui.div("No days available")
+
+        # Create two columns
+        column1 = []
+        column2 = []
+
+        for i, day in enumerate(days):
+            is_selected = (day == selected_day)
+            btn_class = "btn btn-primary mb-2 w-100" if is_selected else "btn btn-outline-secondary mb-2 w-100"
+
+            btn = ui.input_action_link(f"day_select_{i}", label=day, class_=btn_class)
+
+            # Alternate between columns
+            if i % 2 == 0:
+                column1.append(btn)
+            else:
+                column2.append(btn)
+
+        return ui.div(
+            ui.div(*column1, class_="col"),
+            ui.div(*column2, class_="col"),
+            class_="row"
+        )
+    
+    @reactive.Effect
+    def handle_day_selection():
+        days = available_days()
+        for i, day in enumerate(days):
+            if input[f"day_select_{i}"]() > 0:
+                selected_day_value.set(day)
+                print(f"[DEBUG] Day selected: {day}")
 
     @output
     @render_widget
     def event_plot():
-        df = df_raw()
-        df_filtered_data=df_filtered()
+        df=df_glucose_filtered().copy()
+        df_events = df_event_metrics()
+        day_str = selected_day_value.get()
+        show_events = input.show_logged_events()
+
+        if not day_str:
+            return go.Figure()
+        df_day = df[df['date'].astype(str) == day_str]
+        baseline_val = baseline()
+        return create_event_plot(df_day, df_events, day_str, baseline_val, show_events)
+
+    @output
+    @render.data_frame
+    def event_table():
+        return df_event_metrics()
+
+    @render.download(filename="event_metrics.csv")
+    def download_event_metrics():
+        df = df_event_metrics()
+        yield df.to_csv(index=False)
+
+    @output
+    @render.ui
+    def risk_trace_title_ui():
+        return ui.HTML(f"<h5>{risk_trace_title()}</h5>")
+
+    @output
+    @render.ui
+    def roc_histogram_title_ui():
+        return ui.HTML(f"<h5>{roc_histogram_title()}</h5>")
+
+    @output
+    @render.ui
+    def poincare_plot_title_ui():
+        return ui.HTML(f"<h5>{poincare_plot_title()}</h5>")
+    
+    @output
+    @render_widget
+    def risk_trace_plot():
+        df = df_glucose_filtered()
         if df.empty:
             return go.Figure()
-# Identify and clean event rows
-        df_events = df[df['Record Type'].isin([6, 7])].copy()
-        df_events = df_events.drop(df_events[df_events['Notes'] == 'Exercise'].index)
-        df_events['event_type'] = df_events['Record Type'].map({6: 'food', 7: 'exercise'})
-        df_events = df_events.dropna(subset=['timestamp', 'Notes']).sort_values('timestamp').reset_index(drop=True)
+        df_risk = compute_risk_trace(df)
 
-        # Compute baseline and event windows
-        baseline = estimate_baseline_glucose(df)
-        df_food_event_windows = create_event_windows(df_events[df_events['event_type'] == 'food'].copy())
-        # df_event_metrics = compute_metrics_for_all_windows(df_food_event_windows, df_filtered_data, df_events, baseline)
-
-        # # Create plot
-        # fig = go.Figure()
-        # fig.add_trace(go.Scatter(
-        #     x=df['timestamp'],
-        #     y=df['glucose'],
-        #     mode='lines+markers',
-        #     name='Glucose',
-        #     hovertemplate='Time: %{x}<br>Glucose: %{y} mg/dL'
-        # ))
-
-        # for _, row in df_event_metrics.iterrows():
-        #     mask = (df['timestamp'] >= row['window_start']) & (df['timestamp'] <= row['window_end'])
-        #     segment = df.loc[mask]
-        #     above = segment[segment['glucose'] > baseline]
-        #     if above.empty:
-        #         continue
-
-        #     fill_x = list(above['timestamp']) + list(above['timestamp'][::-1])
-        #     fill_y = list(above['glucose']) + [baseline] * len(above)
-        #     n_points = len(fill_x)
-        #     customdata = np.array([[row['event_note'], row['window_start'], row['window_end'],
-        #                             row['glucose_max'], row['glucose_auc']]] * n_points)
-
-        #     fig.add_trace(go.Scatter(
-        #         x=fill_x,
-        #         y=fill_y,
-        #         fill='toself',
-        #         mode='lines+markers',
-        #         marker=dict(size=1, color='rgba(0,0,0,0)'),
-        #         line=dict(color='rgba(255, 165, 0, 0.2)'),
-        #         fillcolor='rgba(255, 165, 0, 0.3)',
-        #         customdata=customdata,
-        #         hovertemplate=(
-        #             "<b>%{customdata[0]}</b><br>" +
-        #             "Start: %{customdata[1]}<br>" +
-        #             "End: %{customdata[2]}<br>" +
-        #             "Max Glucose: %{customdata[3]} mg/dL<br>" +
-        #             "AUC above baseline: %{customdata[4]:.1f}<extra></extra>"
-        #         ),
-        #         showlegend=False
-        #     ))
-
-        # fig.update_layout(
-        #     title='Glucose Readings with Highlighted Event Windows',
-        #     xaxis_title='Timestamp',
-        #     yaxis_title='Glucose (mg/dL)',
-        #     hovermode='closest'
-        # )
-
-        # return fig
-
+        return plot_risk_trace(df_risk)
 
     @output
     @render_widget
-    def daily_plot():
-        df = df_selected_days()
+    def roc_histogram():
+        df = df_glucose_filtered()
         if df.empty:
-            return px.scatter(title="No data available")
-        fig = px.line(
-            df,
-            x="hours_since_midnight",
-            y="glucose",
-            color="date",
-            markers=True,
-            title="Glucose Trends Over 24 Hours by Day"
-        )
-        fig.update_layout(
-            plot_bgcolor='white',       # ✅ White plotting area
-            paper_bgcolor='white',      # ✅ White outer background
-            xaxis=dict(
-                tickmode='array',
-                tickvals=list(range(0, 25, 2)),
-                ticktext=[f'{h % 12 or 12} {"AM" if h < 12 else "PM"}' for h in range(0, 25, 2)],
-                title='Time of Day',
-                gridcolor='lightblue',  # ✅ Light blue gridlines
-                zeroline=False
-            ),
-            yaxis=dict(
-                title='Glucose (mg/dL)',
-                gridcolor='lightblue',  # ✅ Light blue gridlines
-                zeroline=False
-            ),
-        )
-        return fig
+            return go.Figure()
+        roc = compute_rate_of_change(df["glucose"], df["timestamp"])
+        return plot_roc_histogram(roc)
+
+    @output
+    @render_widget
+    def poincare_plot():
+        df = df_glucose_filtered()
+        if df.empty:
+            return go.Figure()
+        poincare_df = compute_poincare_data(glucose_series=df["glucose"],time_series=df["timestamp"])
+        return plot_poincare(poincare_df)
 
 app = App(app_ui, server)
-#calculate aggregated statistic
-#Baseline
-
-#for each peak
-#area under curve
-#peak height, duration of peak, rate of decrease

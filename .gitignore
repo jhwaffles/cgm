@@ -2,6 +2,7 @@
 cgm-env/
 data
 storage
+cgm
 
 # Optionally ignore other common files
 __pycache__/
