@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import os
+from pathlib import Path
 from datetime import datetime, time
 from shiny import App, render, ui, reactive
 from shinywidgets import render_widget, output_widget
@@ -8,18 +8,10 @@ from glucose_metrics import calculate_gmi,time_in_zone, compute_risk_trace, comp
 from ui_components import generate_metrics_summary_ui, signature_plot_title, risk_trace_title, roc_histogram_title, poincare_plot_title
 from plots import create_signature_plot,create_event_plot, plot_risk_trace, plot_roc_histogram, plot_poincare
 from processing_pipeline import run_event_metrics_pipeline
-generate_metrics_summary_ui
-from sklearn.linear_model import LinearRegression
+
 
 import plotly.express as px
 import plotly.graph_objects as go
-
-
-#output metrics + comparison with population values. put some better context on these metrics. 1. what is the Ambuloatory glucose profile? population metrics?
-#output graph with values so user day by day. incorporate better baseline algorithm? Put this on to-do:
-#can take peak/llm analysis offline (download). Add download button.  DONE
-#give 'example' anonymized profiles. DONE
-#put together a readme.
 
 app_ui = ui.page_fluid(
     ui.panel_title("CGM Report"),
@@ -30,6 +22,8 @@ app_ui = ui.page_fluid(
                 # Left column: inputs
                 ui.card(
                     ui.input_file("file", "Upload CGM CSV"),
+                    ui.input_select("example_file", "Or select an example", 
+                        choices=["", "user1.csv", "user2.csv"], selected=""),
                     ui.input_date_range("date_range", "Date Range", start="2022-07-01", end="2022-07-14")
                 ),
                 # Right column: signature plot + metrics
@@ -138,21 +132,30 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     selected_day_value = reactive.Value(None)
     previous_file_name = reactive.Value(None)
+    @reactive.Calc
+    def selected_file_df():
+        user_file = input.file()
+        example_file = input.example_file()
 
+        if user_file:
+            print("[DEBUG] Using user-uploaded file.")
+            return pd.read_csv(user_file[0]["datapath"], skiprows=1)
+
+        elif example_file:
+            print(f"[DEBUG] Using example file: {example_file}")
+            path = Path(__file__).parent / "example_data" / example_file
+            return pd.read_csv(path, skiprows=1)
+
+        return pd.DataFrame()  # fallback
+    
     @reactive.Calc
     def data_bundle():
-        file = input.file()
-
-        # If user uploads a file, use it
-        if file:
-            df_raw = pd.read_csv(file[0]["datapath"], skiprows=1)
-            print("[DEBUG] Using user-uploaded file.")
-        else:
+        df_raw = selected_file_df()
+        if df_raw.empty:
             return {}
-
+        
         start_date, end_date = input.date_range()
         return run_event_metrics_pipeline(df_raw, start_date, end_date)
-
 
     @reactive.Calc
     def df_glucose_filtered():
@@ -181,25 +184,18 @@ def server(input, output, session):
         return generate_metrics_summary_ui(baseline_val, mean_glucose, gmi, zones)
     
     @reactive.Effect
+    @reactive.event(input.file, input.example_file)
     def update_date_range():
-        file = input.file()
-        if not file:
+        df = selected_file_df()
+
+        if df.empty or "timestamp" not in df.columns:
             return
 
-        current_file_name = file[0]["name"]
-        if previous_file_name.get() == current_file_name:
-            return  # Same file — do not reset date range
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        min_date = df["timestamp"].min().date()
+        max_date = df["timestamp"].max().date()
 
-        previous_file_name.set(current_file_name)  # Update to new file
-
-        df = data_bundle().get("df_clean", pd.DataFrame())
-        if df.empty or 'timestamp' not in df.columns:
-            return
-
-        min_date = df['timestamp'].min().date()
-        max_date = df['timestamp'].max().date()
-
-        print(f"[DEBUG] New file uploaded: resetting date range to {min_date} - {max_date}")
+        print(f"[DEBUG] Resetting date range to {min_date} - {max_date}")
 
         ui.update_date_range(
             "date_range",
